@@ -234,76 +234,83 @@ colA, colB = st.columns(2)
 analyze_clicked = colA.button("Analyze Reviews")
 insight_clicked = colB.button("Generate Insights")
 
-if analyze_clicked:
+if analyze_clicked or insight_clicked:
     if multi_input:
-        reviews = [clean_text(r.strip()) for r in multi_input.split("\n") if r.strip()]
+        reviews = multi_input.split("\n")
+        reviews = [r.strip() for r in reviews if r.strip()]
 
-        # ✅ ADD THESE (IMPORTANT)
+        results = model.predict(vectorizer.transform(reviews))
+
+        pos, neg = 0, 0
+
         pos_reviews = []
         neg_reviews = []
 
         st.subheader("🔍 Results")
 
-        for r in reviews:
-            if check_abuse(r):
-                st.error(f"❌ {r}")
-                neg_reviews.append(r)
-                p = 0
+        for r, p in zip(reviews, results):
+            if p == 1:
+                st.success(f"✅ {r}")
+                pos += 1
+                pos_reviews.append(r)
             else:
-                p = model.predict(vectorizer.transform([r]))[0]
+                st.error(f"❌ {r}")
+                neg += 1
+                neg_reviews.append(r)
 
-                # 🔥 RULE OVERRIDES
-                if any(phrase in r for phrase in negative_phrases):
-                    p = 0
-                elif any(phrase in r for phrase in positive_phrases):
-                    p = 1
-                elif any(word in r for word in positive_keywords):
-                    p = 1
-
-                if p == 1:
-                    st.success(f"✅ {r}")
-                    pos_reviews.append(r)
-                else:
-                    st.error(f"❌ {r}")
-                    neg_reviews.append(r)
-
-            # 🔥 pie chart fix
             st.session_state.history.append((r, p, 1.0))
 
-    else:
-        st.warning("Please enter reviews")
-        
-if insight_clicked:
-    if multi_input:
-        pos_reviews = []
-        neg_reviews = []
+        st.subheader("📊 Summary")
+        st.write(f"Positive: {pos}")
+        st.write(f"Negative: {neg}")
 
-        reviews = [clean_text(r.strip()) for r in multi_input.split("\n") if r.strip()]
+        # ---------- INSIGHTS ----------
+        if insight_clicked:
+            st.divider()
+            st.subheader("🧠 Smart Insights")
 
-        for r in reviews:
-            if check_abuse(r):
-                neg_reviews.append(r)
+            pos_text = " ".join(pos_reviews).lower()
+            neg_text = " ".join(neg_reviews).lower()
+
+            liked = []
+            disliked = []
+
+            # 👍 POSITIVE PATTERNS
+            if any(w in pos_text for w in ["good", "great", "amazing", "excellent", "love", "worth", "quality"]):
+                liked.append("the overall quality and performance is appreciated")
+
+            if any(w in pos_text for w in ["design", "look", "style", "color", "colour"]):
+                liked.append("the design and appearance are liked")
+
+            # 👎 NEGATIVE PATTERNS
+            if any(w in neg_text for w in ["cost", "expensive", "price", "costly"]):
+                disliked.append("many users feel the product is overpriced")
+
+            if any(w in neg_text for w in ["bad", "poor", "worst", "terrible"]):
+                disliked.append("there are concerns about poor performance")
+
+            if any(w in neg_text for w in ["not good", "issue", "problem", "defect"]):
+                disliked.append("users reported issues with certain features")
+
+            if any(w in neg_text for w in ["color", "colour"]):
+                disliked.append("some users are not satisfied with the product's appearance or color")
+
+           # ---------- FINAL PARAGRAPH ----------
+            if liked or disliked:
+                final_text = "📌 Based on user reviews: "
+
+                if liked:
+                    final_text += "Users generally like that " + ", ".join(liked) + "."
+
+                if disliked:
+                    final_text += " However, " + ", ".join(disliked) + "."
+
+                st.info(final_text)
             else:
-                p = model.predict(vectorizer.transform([r]))[0]
+                st.info("Not enough strong patterns detected to generate insights.")
 
-                if any(phrase in r for phrase in negative_phrases):
-                    p = 0
-                elif any(phrase in r for phrase in positive_phrases):
-                    p = 1
-                elif any(word in r for word in positive_keywords):
-                    p = 1
-
-                if p == 1:
-                    pos_reviews.append(r)
-                else:
-                    neg_reviews.append(r)
-
-        # 👉 your paragraph insight code here
-        st.subheader("🧠 Smart Insights")
-        st.info("Insights generated from reviews...")
     else:
         st.warning("Please enter reviews")
-
 # ---------- HISTORY ----------
 st.divider()
 st.subheader("📜 Prediction History")
