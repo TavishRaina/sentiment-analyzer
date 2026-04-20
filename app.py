@@ -18,7 +18,7 @@ def clean_text(text):
 abusive_words = [
     "fuck", "fucking", "fuckable",
     "shit", "dogshit", "bullshit",
-    "bitch", "motherfucker", "mf",
+    "bitch", "motherfucker", "mf", "kutta", "sala", "saala", "bhadwa", "bhdwa", "chutiya", 
     "sisterfucker",
     "madarchod", "madar chod",
     "maa ki chut", "maa ke lwde",
