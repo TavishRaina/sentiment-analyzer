@@ -124,7 +124,7 @@ with col1:
                 prediction = model.predict(data)[0]
                 prob = model.predict_proba(data)[0][prediction]
             if any(word in cleaned for word in positive_keywords):
-    prediction = 1 
+                prediction = 1
     
             st.session_state.history.append((user_input, prediction, prob))
 
@@ -190,11 +190,9 @@ if uploaded_file:
                 predictions.append(0)
             else:
                 p = model.predict(vectorizer.transform([r]))[0]
-
-if any(word in r for word in positive_keywords):
-    p = 1
-
-predictions.append(p)
+                if any(word in r for word in positive_keywords):
+                   p = 1
+                predictions.append(p)
 
         df["Sentiment"] = ["Positive" if p == 1 else "Negative" for p in predictions]
 
