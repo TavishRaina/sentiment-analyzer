@@ -20,7 +20,7 @@ negative_phrases = [
 ]
 
 positive_phrases = [
-    "decent phone", "outstanding", 
+    "decent phone", "outstanding", "excellent", "amazing", "great", "perfect", "best", 
     "good phone"
 ]
 
