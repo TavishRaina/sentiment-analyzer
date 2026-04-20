@@ -2,10 +2,27 @@ import streamlit as st
 import pickle
 import pandas as pd
 import matplotlib.pyplot as plt
+import re
 
 # Load model
 model = pickle.load(open("model.pkl", "rb"))
 vectorizer = pickle.load(open("vectorizer.pkl", "rb"))
+
+# ---------- TEXT CLEANING ----------
+def clean_text(text):
+    text = text.lower()
+    text = re.sub(r'[^a-zA-Z ]', '', text)
+    return text
+
+# ---------- ABUSE FILTER ----------
+abusive_words = ["fuck", "shit", "bitch", "madarchod", "bc", "mc", "maa ki chut"]
+
+def check_abuse(text):
+    text = text.lower()
+    for word in abusive_words:
+        if word in text:
+            return True
+    return False
 
 # Page config
 st.set_page_config(
@@ -13,69 +30,41 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="collapsed"
 )
+
 # ---------- UI STYLE ----------
 st.markdown("""
 <style>
-
-/* FORCE LIGHT MODE COMPLETELY */
 html, body, .stApp {
     background-color: #f8fafc !important;
     color: #1e293b !important;
 }
-
-/* Main title centered */
 h1 {
     text-align: center !important;
     color: #1e293b !important;
 }
-
-/* Other headings left aligned */
 h2, h3 {
     text-align: left !important;
     color: #1e293b !important;
-    margin-bottom: 10px;
 }
-
-/* Card blocks */
 .block {
     padding: 20px;
     border-radius: 10px;
     background: white !important;
     box-shadow: 0px 4px 12px rgba(0,0,0,0.08);
 }
-
-/* Text area */
-textarea {
-    background-color: white !important;
-    color: #1e293b !important;
-    border: 1px solid #cbd5e1 !important;
-    border-radius: 8px !important;
-}
-
-/* Input fields */
-input {
+textarea, input {
     background-color: white !important;
     color: #1e293b !important;
 }
-
-/* Buttons */
 .stButton>button {
     background: linear-gradient(135deg, #6366f1, #3b82f6);
     color: white !important;
     border-radius: 8px;
     border: none;
 }
-
-/* Fix ALL text visibility */
 * {
     color: #1e293b !important;
 }
-
-/* Prevent dark overlay containers */
-[data-testid="stAppViewContainer"] {
-    background-color: #f8fafc !important;
-}
-
 </style>
 """, unsafe_allow_html=True)
 
@@ -111,9 +100,15 @@ with col1:
 
     if st.button("🚀 Predict Sentiment"):
         if user_input:
-            data = vectorizer.transform([user_input])
-            prediction = model.predict(data)[0]
-            prob = model.predict_proba(data)[0][prediction]
+            cleaned = clean_text(user_input)
+
+            if check_abuse(cleaned):
+                prediction = 0
+                prob = 1.0
+            else:
+                data = vectorizer.transform([cleaned])
+                prediction = model.predict(data)[0]
+                prob = model.predict_proba(data)[0][prediction]
 
             st.session_state.history.append((user_input, prediction, prob))
 
@@ -171,9 +166,15 @@ if uploaded_file:
     df = pd.read_csv(uploaded_file)
 
     if "review" in df.columns:
-        st.write("Processing reviews...")
+        cleaned_reviews = df["review"].apply(clean_text)
 
-        predictions = model.predict(vectorizer.transform(df["review"]))
+        predictions = []
+        for r in cleaned_reviews:
+            if check_abuse(r):
+                predictions.append(0)
+            else:
+                predictions.append(model.predict(vectorizer.transform([r]))[0])
+
         df["Sentiment"] = ["Positive" if p == 1 else "Negative" for p in predictions]
 
         st.dataframe(df.head())
@@ -185,94 +186,30 @@ if uploaded_file:
     else:
         st.error("CSV must contain 'review' column")
 
-# ---------- BULK REVIEW ANALYZER + INSIGHTS ----------
+# ---------- BULK ANALYZER ----------
 st.divider()
 st.subheader("📂 Bulk Review Analyzer")
 
 multi_input = st.text_area("Paste multiple reviews (one per line):", height=200)
 
-colA, colB = st.columns(2)
-
-analyze_clicked = colA.button("Analyze Reviews")
-insight_clicked = colB.button("Generate Insights")
-
-if analyze_clicked or insight_clicked:
+if st.button("Analyze Reviews"):
     if multi_input:
-        reviews = multi_input.split("\n")
-        reviews = [r.strip() for r in reviews if r.strip()]
-
-        results = model.predict(vectorizer.transform(reviews))
-
-        pos, neg = 0, 0
-
-        pos_reviews = []
-        neg_reviews = []
+        reviews = [clean_text(r.strip()) for r in multi_input.split("\n") if r.strip()]
 
         st.subheader("🔍 Results")
 
-        for r, p in zip(reviews, results):
-            if p == 1:
-                st.success(f"✅ {r}")
-                pos += 1
-                pos_reviews.append(r)
-            else:
+        for r in reviews:
+            if check_abuse(r):
                 st.error(f"❌ {r}")
-                neg += 1
-                neg_reviews.append(r)
-
-            st.session_state.history.append((r, p, 1.0))
-
-        st.subheader("📊 Summary")
-        st.write(f"Positive: {pos}")
-        st.write(f"Negative: {neg}")
-
-        # ---------- INSIGHTS ----------
-        if insight_clicked:
-            st.divider()
-            st.subheader("🧠 Smart Insights")
-
-            pos_text = " ".join(pos_reviews).lower()
-            neg_text = " ".join(neg_reviews).lower()
-
-            liked = []
-            disliked = []
-
-            # 👍 POSITIVE PATTERNS
-            if any(w in pos_text for w in ["good", "great", "amazing", "excellent", "love", "worth", "quality"]):
-                liked.append("the overall quality and performance is appreciated")
-
-            if any(w in pos_text for w in ["design", "look", "style", "color", "colour"]):
-                liked.append("the design and appearance are liked")
-
-            # 👎 NEGATIVE PATTERNS
-            if any(w in neg_text for w in ["cost", "expensive", "price", "costly"]):
-                disliked.append("many users feel the product is overpriced")
-
-            if any(w in neg_text for w in ["bad", "poor", "worst", "terrible"]):
-                disliked.append("there are concerns about poor performance")
-
-            if any(w in neg_text for w in ["not good", "issue", "problem", "defect"]):
-                disliked.append("users reported issues with certain features")
-
-            if any(w in neg_text for w in ["color", "colour"]):
-                disliked.append("some users are not satisfied with the product's appearance or color")
-
-            # ---------- FINAL PARAGRAPH ----------
-            if liked or disliked:
-                final_text = "📌 Based on user reviews: "
-
-                if liked:
-                    final_text += "Users generally like that " + ", ".join(liked) + "."
-
-                if disliked:
-                    final_text += " However, " + ", ".join(disliked) + "."
-
-                st.info(final_text)
             else:
-                st.info("Not enough strong patterns detected to generate insights.")
-
+                p = model.predict(vectorizer.transform([r]))[0]
+                if p == 1:
+                    st.success(f"✅ {r}")
+                else:
+                    st.error(f"❌ {r}")
     else:
         st.warning("Please enter reviews")
+
 # ---------- HISTORY ----------
 st.divider()
 st.subheader("📜 Prediction History")
