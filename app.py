@@ -160,31 +160,6 @@ with col1:
 
     st.markdown("</div>", unsafe_allow_html=True)
 
-# ---------- RIGHT PANEL ----------
-with col2:
-    st.markdown("<div class='block'>", unsafe_allow_html=True)
-
-    st.subheader("📊 Model Info")
-    st.write("Algorithm: Logistic Regression")
-    st.write("Technique: TF-IDF")
-    st.write("Accuracy: ~87%")
-
-    st.subheader("📈 Stats")
-
-    if st.session_state.history:
-        total = len(st.session_state.history)
-        positives = sum(1 for x in st.session_state.history if x[1] == 1)
-        negatives = total - positives
-
-        st.metric("Total Predictions", total)
-        st.metric("Positive", positives)
-        st.metric("Negative", negatives)
-
-        fig, ax = plt.subplots()
-        ax.pie([positives, negatives], labels=["Positive", "Negative"], autopct='%1.1f%%')
-        st.pyplot(fig)
-
-    st.markdown("</div>", unsafe_allow_html=True)
 
 # ---------- CSV UPLOAD ----------
 st.divider()
@@ -357,6 +332,32 @@ if insight_clicked:
 
     else:
         st.warning("Please enter reviews")
+        
+# ---------- RIGHT PANEL ----------
+with col2:
+    st.markdown("<div class='block'>", unsafe_allow_html=True)
+
+    st.subheader("📊 Model Info")
+    st.write("Algorithm: Logistic Regression")
+    st.write("Technique: TF-IDF")
+    st.write("Accuracy: ~87%")
+
+    st.subheader("📈 Stats")
+
+    if st.session_state.history:
+        total = len(st.session_state.history)
+        positives = sum(1 for x in st.session_state.history if x[1] == 1)
+        negatives = total - positives
+
+        st.metric("Total Predictions", total)
+        st.metric("Positive", positives)
+        st.metric("Negative", negatives)
+
+        fig, ax = plt.subplots()
+        ax.pie([positives, negatives], labels=["Positive", "Negative"], autopct='%1.1f%%')
+        st.pyplot(fig)
+
+    st.markdown("</div>", unsafe_allow_html=True)
 # ---------- HISTORY ----------
 st.divider()
 st.subheader("📜 Prediction History")
