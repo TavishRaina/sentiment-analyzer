@@ -14,6 +14,15 @@ def clean_text(text):
     text = re.sub(r'[^a-zA-Z ]', '', text)
     return text
 positive_keywords = ["outstanding", "excellent", "amazing", "great", "perfect", "best"]
+negative_phrases = [
+    "heat", "heats", "lag", "lags",
+    "not worth", "not good"
+]
+
+positive_phrases = [
+    "decent phone",
+    "good phone"
+]
 
 # ---------- ABUSE FILTER ----------
 abusive_words = [
@@ -115,7 +124,6 @@ with col1:
     if st.button("🚀 Predict Sentiment"):
         if user_input:
             cleaned = clean_text(user_input)
-
             if check_abuse(cleaned):
                 prediction = 0
                 prob = 1.0
@@ -123,8 +131,12 @@ with col1:
                 data = vectorizer.transform([cleaned])
                 prediction = model.predict(data)[0]
                 prob = model.predict_proba(data)[0][prediction]
-            if any(word in cleaned for word in positive_keywords):
-                prediction = 1
+
+                # 🔥 RULE OVERRIDES
+                if any(phrase in cleaned for phrase in negative_phrases):
+                     prediction = 0
+                elif any(phrase in cleaned for phrase in positive_phrases):
+                     prediction = 1
     
             st.session_state.history.append((user_input, prediction, prob))
 
@@ -187,12 +199,16 @@ if uploaded_file:
         predictions = []
         for r in cleaned_reviews:
             if check_abuse(r):
-                predictions.append(0)
+                p = 0
             else:
                 p = model.predict(vectorizer.transform([r]))[0]
-                if any(word in r for word in positive_keywords):
-                   p = 1
-                predictions.append(p)
+                # 🔥 RULE OVERRIDES
+                if any(phrase in r for phrase in negative_phrases):
+                    p = 0
+                elif any(phrase in r for phrase in positive_phrases):
+                    p = 1
+
+            predictions.append(p)
 
         df["Sentiment"] = ["Positive" if p == 1 else "Negative" for p in predictions]
 
@@ -222,6 +238,13 @@ if st.button("Analyze Reviews"):
                 st.error(f"❌ {r}")
             else:
                 p = model.predict(vectorizer.transform([r]))[0]
+
+                # 🔥 RULE OVERRIDES
+                if any(phrase in r for phrase in negative_phrases):
+                    p = 0
+                elif any(phrase in r for phrase in positive_phrases):
+                    p = 1
+
                 if p == 1:
                     st.success(f"✅ {r}")
                 else:
