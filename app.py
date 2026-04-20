@@ -23,7 +23,7 @@ abusive_words = [
     "madarchod", "madar chod",
     "maa ki chut", "maa ke lwde",
     "behen ki chut",
-    "bhosdk", "bkl", "bkc",
+    "bhosdk", "bkl", "bkc", "mkc"
     "bc", "mc",
     "lwde", "lawde", "lund",
     "gandu", "gaandu",
