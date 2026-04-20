@@ -15,7 +15,7 @@ def clean_text(text):
     return text
 positive_keywords = ["outstanding", "excellent", "amazing", "great", "perfect", "best"]
 negative_phrases = [
-    "heat", "heats", "lag", "lags",
+    "heat", "heats", "lag", "lags", "bug", "bugs", "buggy", 
     "not worth", "not good"
 ]
 
