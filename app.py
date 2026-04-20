@@ -229,7 +229,12 @@ st.subheader("📂 Bulk Review Analyzer")
 
 multi_input = st.text_area("Paste multiple reviews (one per line):", height=200)
 
-if st.button("Analyze Reviews"):
+colA, colB = st.columns(2)
+
+analyze_clicked = colA.button("Analyze Reviews")
+insight_clicked = colB.button("Generate Insights")
+
+if analyze_clicked or insight_clicked:
     if multi_input:
         reviews = [clean_text(r.strip()) for r in multi_input.split("\n") if r.strip()]
 
@@ -238,6 +243,8 @@ if st.button("Analyze Reviews"):
         for r in reviews:
             if check_abuse(r):
                 st.error(f"❌ {r}")
+                 neg_reviews.append(r)
+                 p = 0
             else:
                 p = model.predict(vectorizer.transform([r]))[0]
 
@@ -249,8 +256,14 @@ if st.button("Analyze Reviews"):
 
                 if p == 1:
                     st.success(f"✅ {r}")
+                    pos_reviews.append(r)
                 else:
                     st.error(f"❌ {r}")
+                    neg_reviews.append(r)
+    
+            # 🔥 THIS FIXES YOUR PIE CHART
+            st.session_state.history.append((r, p, 1.0))
+    
     else:
         st.warning("Please enter reviews")
 
