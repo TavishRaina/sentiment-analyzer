@@ -238,13 +238,17 @@ if analyze_clicked or insight_clicked:
     if multi_input:
         reviews = [clean_text(r.strip()) for r in multi_input.split("\n") if r.strip()]
 
+        # ✅ ADD THESE (IMPORTANT)
+        pos_reviews = []
+        neg_reviews = []
+
         st.subheader("🔍 Results")
 
         for r in reviews:
             if check_abuse(r):
                 st.error(f"❌ {r}")
-                 neg_reviews.append(r)
-                 p = 0
+                neg_reviews.append(r)
+                p = 0
             else:
                 p = model.predict(vectorizer.transform([r]))[0]
 
@@ -253,6 +257,8 @@ if analyze_clicked or insight_clicked:
                     p = 0
                 elif any(phrase in r for phrase in positive_phrases):
                     p = 1
+                elif any(word in r for word in positive_keywords):
+                    p = 1
 
                 if p == 1:
                     st.success(f"✅ {r}")
@@ -260,10 +266,10 @@ if analyze_clicked or insight_clicked:
                 else:
                     st.error(f"❌ {r}")
                     neg_reviews.append(r)
-    
-            # 🔥 THIS FIXES YOUR PIE CHART
+
+            # 🔥 pie chart fix
             st.session_state.history.append((r, p, 1.0))
-    
+
     else:
         st.warning("Please enter reviews")
 
