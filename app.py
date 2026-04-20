@@ -132,11 +132,13 @@ with col1:
                 prediction = model.predict(data)[0]
                 prob = model.predict_proba(data)[0][prediction]
 
-                # 🔥 RULE OVERRIDES
+               # 🔥 RULE OVERRIDES (FINAL ORDER)
                 if any(phrase in cleaned for phrase in negative_phrases):
-                     prediction = 0
+                    prediction = 0
                 elif any(phrase in cleaned for phrase in positive_phrases):
-                     prediction = 1
+                    prediction = 1
+                elif any(word in cleaned for word in positive_keywords):
+                       prediction = 1 
     
             st.session_state.history.append((user_input, prediction, prob))
 
