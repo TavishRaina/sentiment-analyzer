@@ -15,7 +15,20 @@ def clean_text(text):
     return text
 
 # ---------- ABUSE FILTER ----------
-abusive_words = ["fuck", "shit", "bitch", "madarchod", "bc", "mc", "maa ki chut"]
+abusive_words = [
+    "fuck", "fucking", "fuckable",
+    "shit", "dogshit", "bullshit",
+    "bitch", "motherfucker", "mf",
+    "sisterfucker",
+    "madarchod", "madar chod",
+    "maa ki chut", "maa ke lwde",
+    "behen ki chut",
+    "bhosdk", "bkl", "bkc",
+    "bc", "mc",
+    "lwde", "lawde", "lund",
+    "gandu", "gaandu",
+    "trash"
+]
 
 def check_abuse(text):
     text = text.lower()
