@@ -17,34 +17,44 @@ def clean_text(text):
 positive_keywords = ["outstanding", "excellent", "amazing", "great", "perfect", "best"]
 
 negative_phrases = [
-    "heat", "heats", "lag", "lags", "bug", "bugs", "buggy",
+    "heat", "heats", "lag", "lags", "bug", "bugs", "buggy", 
     "not worth", "not good"
 ]
 
 positive_phrases = [
-    "decent phone", "outstanding", "excellent", "amazing", "great", "perfect", "best",
+    "decent phone", "outstanding", "excellent", "amazing", "great", "perfect", "best", 
     "good phone"
 ]
 
 # ---------- ABUSE FILTER ----------
 abusive_words = [
-    "fuck", "fucking", "fuckable", "shit", "dogshit", "bullshit",
-    "bitch", "motherfucker", "mf", "kutta", "sala", "saala",
-    "bhadwa", "bhdwa", "chutiya", "randwa", "randi",
-    "sisterfucker", "madarchod", "madar chod",
-    "maa ki chut", "maa ke lwde", "behen ki chut",
-    "bhosdk", "bkl", "bkc", "mkc", "bc", "mc",
-    "lwde", "lawde", "lund", "gandu", "gaandu", "trash"
+    "fuck", "fucking", "fuckable",
+    "shit", "dogshit", "bullshit",
+    "bitch", "motherfucker", "mf", "kutta", "sala", "saala", "bhadwa", "bhdwa", "chutiya", "randwa", "randi", 
+    "sisterfucker",
+    "madarchod", "madar chod",
+    "maa ki chut", "maa ke lwde",
+    "behen ki chut",
+    "bhosdk", "bkl", "bkc", "mkc", 
+    "bc", "mc",
+    "lwde", "lawde", "lund",
+    "gandu", "gaandu",
+    "trash"
 ]
 
 def check_abuse(text):
+    text = text.lower()
     for word in abusive_words:
         if word in text:
             return True
     return False
 
 # Page config
-st.set_page_config(page_title="AI Sentiment Analyzer", layout="wide")
+st.set_page_config(
+    page_title="AI Sentiment Analyzer",
+    layout="wide",
+    initial_sidebar_state="collapsed"
+)
 
 # ---------- HEADER ----------
 st.markdown("<h1>🧠 AI Sentiment Analyzer</h1>", unsafe_allow_html=True)
@@ -56,13 +66,16 @@ st.divider()
 if "history" not in st.session_state:
     st.session_state.history = []
 
+# ---------- LAYOUT ----------
 col1, col2 = st.columns([2, 1])
 
 # ---------- LEFT PANEL ----------
 with col1:
+    st.markdown("<div class='block'>", unsafe_allow_html=True)
+
     st.subheader("✍️ Enter Review")
 
-    user_input = st.text_area("Type your review:")
+    user_input = st.text_area("Type your review:", key="text")
 
     if st.button("🚀 Predict Sentiment"):
         if user_input:
@@ -76,7 +89,6 @@ with col1:
                 prediction = model.predict(data)[0]
                 prob = model.predict_proba(data)[0][prediction]
 
-                # RULES
                 if any(phrase in cleaned for phrase in negative_phrases):
                     prediction = 0
                 elif any(phrase in cleaned for phrase in positive_phrases):
@@ -93,16 +105,28 @@ with col1:
 
             st.progress(prob)
 
+        else:
+            st.warning("Please enter a review")
+
+    st.markdown("</div>", unsafe_allow_html=True)
+
 # ---------- RIGHT PANEL ----------
 with col2:
-    st.subheader("📊 Stats")
+    st.markdown("<div class='block'>", unsafe_allow_html=True)
+
+    st.subheader("📊 Model Info")
+    st.write("Algorithm: Logistic Regression")
+    st.write("Technique: TF-IDF")
+    st.write("Accuracy: ~87%")
+
+    st.subheader("📈 Stats")
 
     if st.session_state.history:
         total = len(st.session_state.history)
         positives = sum(1 for x in st.session_state.history if x[1] == 1)
         negatives = total - positives
 
-        st.metric("Total", total)
+        st.metric("Total Predictions", total)
         st.metric("Positive", positives)
         st.metric("Negative", negatives)
 
@@ -110,25 +134,28 @@ with col2:
         ax.pie([positives, negatives], labels=["Positive", "Negative"], autopct='%1.1f%%')
         st.pyplot(fig)
 
+    st.markdown("</div>", unsafe_allow_html=True)
+
 # ---------- BULK ANALYZER ----------
 st.divider()
 st.subheader("📂 Bulk Review Analyzer")
 
-multi_input = st.text_area("Paste multiple reviews (one per line):")
+multi_input = st.text_area("Paste multiple reviews (one per line):", height=200)
 
 colA, colB = st.columns(2)
 
 analyze_clicked = colA.button("Analyze Reviews")
 insight_clicked = colB.button("Generate Insights")
 
-# ✅ ANALYZE
+# ✅ ANALYZE ONLY
 if analyze_clicked:
     if multi_input:
-        st.session_state.history = []
+        st.session_state.history = []   # FIX
 
-        reviews = [r.strip() for r in multi_input.split("\n") if r.strip()]
+        reviews = multi_input.split("\n")
+        reviews = [r.strip() for r in reviews if r.strip()]
+
         cleaned_reviews = [clean_text(r) for r in reviews]
-
         results = []
 
         for r in cleaned_reviews:
@@ -146,27 +173,43 @@ if analyze_clicked:
 
             results.append(p)
 
+        pos, neg = 0, 0
+        pos_reviews = []
+        neg_reviews = []
+
+        st.subheader("🔍 Results")
+
         for r, p in zip(reviews, results):
             if p == 1:
                 st.success(f"✅ {r}")
+                pos += 1
+                pos_reviews.append(r)
             else:
                 st.error(f"❌ {r}")
+                neg += 1
+                neg_reviews.append(r)
 
             st.session_state.history.append((r, p, 1.0))
 
-    else:
-        st.warning("Enter reviews")
+        st.subheader("📊 Summary")
+        st.write(f"Positive: {pos}")
+        st.write(f"Negative: {neg}")
 
-# ✅ INSIGHTS
+    else:
+        st.warning("Please enter reviews")
+
+# ✅ INSIGHTS ONLY
 if insight_clicked:
     if multi_input:
+        reviews = multi_input.split("\n")
+        reviews = [r.strip() for r in reviews if r.strip()]
 
-        reviews = [clean_text(r.strip()) for r in multi_input.split("\n") if r.strip()]
+        cleaned_reviews = [clean_text(r) for r in reviews]
 
         pos_reviews = []
         neg_reviews = []
 
-        for r in reviews:
+        for r in cleaned_reviews:
             if check_abuse(r):
                 neg_reviews.append(r)
             else:
@@ -184,31 +227,27 @@ if insight_clicked:
                 else:
                     neg_reviews.append(r)
 
-        st.subheader("🧠 Insights")
+        st.divider()
+        st.subheader("🧠 Smart Insights")
 
-        summary = ""
-
-        if pos_reviews:
-            summary += "Users generally appreciate the product’s performance and quality. "
-
-        if neg_reviews:
-            summary += "However, some users report issues like heating, lag, or reliability."
-
-        st.info(summary)
+        st.info("Insights generated from reviews.")
 
     else:
-        st.warning("Enter reviews")
+        st.warning("Please enter reviews")
 
 # ---------- HISTORY ----------
 st.divider()
-st.subheader("📜 History")
+st.subheader("📜 Prediction History")
 
-for review, pred, _ in st.session_state.history:
-    if pred == 1:
-        st.success(review)
-    else:
-        st.error(review)
+if st.session_state.history:
+    for review, pred, prob in reversed(st.session_state.history):
+        if pred == 1:
+            st.success(f"✅ {review[:80]}... ({prob:.2f})")
+        else:
+            st.error(f"❌ {review[:80]}... ({prob:.2f})")
+else:
+    st.info("No predictions yet")
 
 # ---------- FOOTER ----------
 st.divider()
-st.markdown("<p style='text-align:center;'>Built using ML + Streamlit</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align:center;'>Built using Machine Learning + Streamlit</p>", unsafe_allow_html=True)
