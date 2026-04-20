@@ -234,7 +234,7 @@ colA, colB = st.columns(2)
 analyze_clicked = colA.button("Analyze Reviews")
 insight_clicked = colB.button("Generate Insights")
 
-if analyze_clicked or insight_clicked:
+if analyze_clicked:
     if multi_input:
         reviews = [clean_text(r.strip()) for r in multi_input.split("\n") if r.strip()]
 
@@ -272,13 +272,44 @@ if analyze_clicked or insight_clicked:
 
     else:
         st.warning("Please enter reviews")
+        
+if insight_clicked:
+    if multi_input:
+        pos_reviews = []
+        neg_reviews = []
+
+        reviews = [clean_text(r.strip()) for r in multi_input.split("\n") if r.strip()]
+
+        for r in reviews:
+            if check_abuse(r):
+                neg_reviews.append(r)
+            else:
+                p = model.predict(vectorizer.transform([r]))[0]
+
+                if any(phrase in r for phrase in negative_phrases):
+                    p = 0
+                elif any(phrase in r for phrase in positive_phrases):
+                    p = 1
+                elif any(word in r for word in positive_keywords):
+                    p = 1
+
+                if p == 1:
+                    pos_reviews.append(r)
+                else:
+                    neg_reviews.append(r)
+
+        # 👉 your paragraph insight code here
+        st.subheader("🧠 Smart Insights")
+        st.info("Insights generated from reviews...")
+    else:
+        st.warning("Please enter reviews")
 
 # ---------- HISTORY ----------
 st.divider()
 st.subheader("📜 Prediction History")
 
 if st.session_state.history:
-    for review, pred, prob in reversed(st.session_state.history[-5:]):
+    for review, pred, prob in reversed(st.session_state.history):
         if pred == 1:
             st.success(f"✅ {review[:80]}... ({prob:.2f})")
         else:
