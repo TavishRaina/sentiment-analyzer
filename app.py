@@ -240,23 +240,23 @@ if analyze_clicked or insight_clicked:
         reviews = [r.strip() for r in reviews if r.strip()]
 
         cleaned_reviews = [clean_text(r) for r in reviews]
-results = []
+        results = []
 
-for r in cleaned_reviews:
-    if check_abuse(r):
-        p = 0
-    else:
-        p = model.predict(vectorizer.transform([r]))[0]
+        for r in cleaned_reviews:
+            if check_abuse(r):
+                    p = 0
+            else:
+                p = model.predict(vectorizer.transform([r]))[0]
 
-        # 🔥 ADD THIS (RULE LOGIC)
-        if any(phrase in r for phrase in negative_phrases):
-            p = 0
-        elif any(phrase in r for phrase in positive_phrases):
-            p = 1
-        elif any(word in r for word in positive_keywords):
-            p = 1
+                # 🔥 ADD THIS (RULE LOGIC)
+                if any(phrase in r for phrase in negative_phrases):
+                    p = 0
+                elif any(phrase in r for phrase in positive_phrases):
+                    p = 1
+                elif any(word in r for word in positive_keywords):
+                    p = 1
 
-    results.append(p)
+            results.append(p)
 
         pos, neg = 0, 0
 
