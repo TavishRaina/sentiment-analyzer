@@ -26,9 +26,21 @@ positive_phrases = [
 def aspect_analysis(text):
     text = text.lower()
 
-    aspects = ["camera", "battery", "performance", "display", "design"]
-    positive_words = ["good", "great", "amazing", "excellent"]
-    negative_words = ["bad", "poor", "worst", "terrible"]
+    aspects = ["camera", "battery", "performance", "display", "design", "looks", "size"]
+    positive_words = ["good", "great", "amazing", "excellent", "decent phone", "outstanding", "perfect", "best", 
+    "good phone"]
+    negative_words = ["bad", "poor", "worst", "terrible", "fuck", "fucking", "fuckable",
+    "shit", "dogshit", "bullshit",
+    "bitch", "motherfucker", "mf", "kutta", "sala", "saala", "bhadwa", "bhdwa", "chutiya", "randwa", "randi", 
+    "sisterfucker",
+    "madarchod", "madar chod",
+    "maa ki chut", "maa ke lwde",
+    "behen ki chut",
+    "bhosdk", "bkl", "bkc", "mkc", 
+    "bc", "mc",
+    "lwde", "lawde", "lund",
+    "gandu", "gaandu",
+    "trash"]
 
     parts = re.split(r'but|and|,', text)
 
