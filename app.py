@@ -23,7 +23,26 @@ positive_phrases = [
     "decent phone", "outstanding", "excellent", "amazing", "great", "perfect", "best", 
     "good phone"
 ]
+def aspect_analysis(text):
+    text = text.lower()
 
+    aspects = ["camera", "battery", "performance", "display", "design"]
+    positive_words = ["good", "great", "amazing", "excellent"]
+    negative_words = ["bad", "poor", "worst", "terrible"]
+
+    parts = re.split(r'but|and|,', text)
+
+    results = []
+
+    for part in parts:
+        for aspect in aspects:
+            if aspect in part:
+                if any(p in part for p in positive_words):
+                    results.append((aspect, "Positive"))
+                elif any(n in part for n in negative_words):
+                    results.append((aspect, "Negative"))
+
+    return results
 # ---------- ABUSE FILTER ----------
 abusive_words = [
     "fuck", "fucking", "fuckable",
@@ -159,6 +178,20 @@ with col1:
             st.warning("Please enter a review")
 
     st.markdown("</div>", unsafe_allow_html=True)
+
+# ---------- ASPECT ANALYSIS ----------
+st.subheader("🔎 Aspect Analysis")
+
+aspects = aspect_analysis(user_input)
+
+if aspects:
+    for a, sentiment in aspects:
+        if sentiment == "Positive":
+            st.success(f"{a.capitalize()} → Positive")
+        else:
+            st.error(f"{a.capitalize()} → Negative")
+else:
+    st.info("No specific aspects detected")
 
 
 # ---------- CSV UPLOAD ----------
