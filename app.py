@@ -31,7 +31,7 @@ def aspect_analysis(text):
     "good phone"]
     negative_words = ["bad", "poor", "worst", "terrible", "fuck", "fucking", "fuckable",
     "shit", "dogshit", "bullshit",
-    "bitch", "motherfucker", "mf", "kutta", "sala", "saala", "bhadwa", "bhdwa", "chutiya", "randwa", "randi", 
+    "bitch", "motherfucker", "mf", "kutta", "sala", "saala", "bhadwa", "bhdwa", "chutiya", "randwa",  
     "sisterfucker",
     "madarchod", "madar chod",
     "maa ki chut", "maa ke lwde",
