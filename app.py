@@ -78,6 +78,49 @@ def check_abuse(text):
             return True
     return False
 
+# Page config
+st.set_page_config(
+    page_title="AI Sentiment Analyzer",
+    layout="wide",
+    initial_sidebar_state="collapsed"
+)
+
+# ---------- UI STYLE ----------
+st.markdown("""
+<style>
+html, body, .stApp {
+    background-color: #f8fafc !important;
+    color: #1e293b !important;
+}
+h1 {
+    text-align: center !important;
+    color: #1e293b !important;
+}
+h2, h3 {
+    text-align: left !important;
+    color: #1e293b !important;
+}
+.block {
+    padding: 20px;
+    border-radius: 10px;
+    background: white !important;
+    box-shadow: 0px 4px 12px rgba(0,0,0,0.08);
+}
+textarea, input {
+    background-color: white !important;
+    color: #1e293b !important;
+}
+.stButton>button {
+    background: linear-gradient(135deg, #6366f1, #3b82f6);
+    color: white !important;
+    border-radius: 8px;
+    border: none;
+}
+* {
+    color: #1e293b !important;
+}
+</style>
+""", unsafe_allow_html=True)
 
 # ---------- HEADER ----------
 st.markdown("<h1>🧠 AI Sentiment Analyzer</h1>", unsafe_allow_html=True)
